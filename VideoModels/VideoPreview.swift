@@ -2,14 +2,14 @@
 //  VideoPreview.swift
 //  Youtube_App
 //
-//  Created by Nayana Sharma on 8/17/23.
+//  Created by Nayana Sharma on 8/20/23.
 //
 
 import Foundation
 import Alamofire
 
-class VideoPreview: ObservableObject
-{
+class VideoPreview: ObservableObject {
+    
     @Published var thumbnailData = Data()
     @Published var title: String
     @Published var date: String
@@ -18,42 +18,37 @@ class VideoPreview: ObservableObject
     
     init(video: Video) {
         
-        //Set video and title
         self.video = video
         self.title = video.title
         
-        //Set date
+        // Set the date
         let df = DateFormatter()
         df.dateFormat = "EEEE, MMM d, yyyy"
         self.date = df.string(from: video.published)
         
-        //Download the image data
+        // Set the thumbnail
+        guard video.thumbnail != "" else { return }
         
-        guard video.thumbnail != "" else {return}
-        
-        //Check cache before downloading data
-        if let cachedData = CacheManager.getVideoCache(video.thumbnail){
-            //Set the thumbnail data
+        // Check cache before downloading data
+        if let cachedData = CacheManager.getVideoCache(video.thumbnail) {
+            
+            // Set the thumbnail imageview
             thumbnailData = cachedData
             return
         }
-            
         
-        //Get a url from the thumbnail
+        // Download the thumbnail data
         guard let url = URL(string: video.thumbnail) else { return }
         
-        //Create the request
         AF.request(url).validate().responseData { response in
             
             if let data = response.data {
-                //Save the data in the cache
+                // Save the data in the cache
                 CacheManager.setVideoCache(video.thumbnail, data)
                 
-                //Set the image
+                // Set the image
                 DispatchQueue.main.async {
-                    
                     self.thumbnailData = data
-                    
                 }
             }
         }
